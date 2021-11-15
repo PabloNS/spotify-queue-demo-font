@@ -1,21 +1,17 @@
-/**
- * This is an example of a basic node.js script that performs
- * the Authorization Code oAuth2 flow to authenticate against
- * the Spotify Accounts.
- *
- * For more information, read
- * https://developer.spotify.com/web-api/authorization-guide/#authorization_code_flow
- */
 
-var express = require('express'); // Express web server framework
-var request = require('request'); // "Request" library
+var express = require('express');
+var request = require('request');
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 
-var client_id = process.env.SPOTIFY_CLIENT_ID; // Your client id
-var client_secret = process.env.SPOTIFY_CLIENT_SECRET; // Your secret
-var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
+
+var client_id = process.env.SPOTIFY_CLIENT_ID;
+var client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+var redirect_uri = 'http://localhost:8888/callback';
+var positionLatitude;
+var positionLongitude;
+var positionAccuracy;
 
 /**
  * Generates a random string containing numbers and letters
@@ -41,6 +37,10 @@ app.use(express.static(__dirname + '/public'))
    .use(cookieParser());
 
 app.get('/login', function(req, res) {
+
+  positionLatitude = req.query.positionLatitude;
+  positionLongitude = req.query.positionLongitude;
+  positionAccuracy = req.query.positionAccuracy;
 
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
@@ -103,13 +103,16 @@ app.get('/callback', function(req, res) {
           console.log(body);
 
           var saveUserOptions = {
-            url: 'http://localhost:8080/spotify/saveUser',
+            url: 'http://localhost:8080/user',
             body: {
               accessToken: access_token,
               refreshToken: refresh_token,
               spotifyId: body.id,
               spotifyEmail: body.email,
-              spotifyDisplayName: body.display_name
+              spotifyDisplayName: body.display_name,
+              positionLatitude: positionLatitude,
+              positionLongitude: positionLongitude,
+              positionAccuracy: positionAccuracy
             },
             json: true
           };
