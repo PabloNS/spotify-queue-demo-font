@@ -4,7 +4,7 @@
     <title>Example of the Authorization Code flow with Spotify</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <style type="text/css">
-      #login, #loggedin {
+      #recommend-me, #loggedin {
         display: none;
       }
       .text-overflow {
@@ -18,10 +18,19 @@
 
   <body>
     <div class="container">
-      <div id="login">
-        <h1>This is an example of the Authorization Code flow</h1>
-        <a href="/login" class="btn btn-primary">Log in with Spotify</a>
-        <button class="btn btn-default" id="open-queue">Open my Spotify queue</button>
+      <div id="recommend-me">
+        <button class="btn btn-primary" id="recommend-me-button">Recommend me</button>
+      </div>
+      <div id="recommend-others">
+        <button class="btn btn-primary" id="recommend-others-button">Recommend others</button>
+      </div>
+      <div id="search-song">
+        <label for="song-name">Song name:</label>
+        <input type="text" id="song-name" name="song-name"><br><br>
+        <button class="btn btn-primary" id="search-song-button">Search</button>
+      </div>
+      <div id="song-result" hidden="true">
+        <iframe id="spotify-track" src="https://open.spotify.com/embed/album/1DFixLWuPkv3KT3TnV35m3" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
       </div>
       <div id="loggedin">
         <div id="user-profile">
@@ -111,14 +120,18 @@
                 success: function(response) {
                   userProfilePlaceholder.innerHTML = userProfileTemplate(response);
 
-                  $('#login').hide();
-                  $('#loggedin').show();
+                  $('#recommend-me').hide();
+                  $('#recommend-others').hide();
+                  //$('#loggedin').show();
+                  $('#search-song').show();
                 }
             });
           } else {
               // render initial screen
-              $('#login').show();
+              $('#recommend-me').show();
+              $('#recommend-others').show();
               $('#loggedin').hide();
+              $('#search-song').hide();
           }
 
           document.getElementById('obtain-new-token').addEventListener('click', function() {
@@ -136,7 +149,7 @@
             });
           }, false);
 
-          document.getElementById('open-queue').addEventListener('click', function() {
+          document.getElementById('recommend-me').addEventListener('click', function() {
             var latitude;
             var longitude;
             var accuracy;
@@ -158,7 +171,7 @@
               latitude =  crd.latitude;
               longitude =  crd.longitude;
               accuracy =  crd.accuracy;
-              window.location.href = "/login?positionLatitude=" + latitude + "&positionLongitude=" + longitude + "&positionAccuracy=" + accuracy;
+              window.location.href = "/recommendMe?positionLatitude=" + latitude + "&positionLongitude=" + longitude + "&positionAccuracy=" + accuracy;
             }
 
             function error(err) {
@@ -167,6 +180,17 @@
 
             navigator.geolocation.getCurrentPosition(success, error, options);
           }, false);
+
+          document.getElementById('search-song-button').addEventListener('click', function() {
+
+            $.ajax({
+              url: '/searchSong?songName=' + $('#song-name').val(),
+            }).done(function(data) {
+              console.log(data.track)
+              $("#spotify-track").attr("src", "https://open.spotify.com/embed/track/" +  data.track);
+              $('#song-result').show();
+            });
+          }, false);  
         }
       })();
     </script>

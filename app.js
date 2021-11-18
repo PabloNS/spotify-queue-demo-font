@@ -1,4 +1,3 @@
-
 var express = require('express');
 var request = require('request');
 var cors = require('cors');
@@ -36,7 +35,7 @@ app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser());
 
-app.get('/login', function(req, res) {
+app.get('/recommendMe', function(req, res) {
 
   positionLatitude = req.query.positionLatitude;
   positionLongitude = req.query.positionLongitude;
@@ -159,6 +158,25 @@ app.get('/refresh_token', function(req, res) {
         'access_token': access_token
       });
     }
+  });
+});
+
+app.get('/searchSong', function(req, res) {
+
+  var songName = req.query.songName;
+
+  var options = {
+    url: 'http://localhost:8080/spotify/search?query=' + songName,
+    json: true
+  };
+
+  // use the access token to access the Spotify Web API
+  request.get(options, function(error, response, body) {
+    console.log(body);
+
+    res.send({
+      'track': body.track
+    });
   });
 });
 
